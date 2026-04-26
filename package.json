@@ -1,12 +1,13 @@
 {
   "name": "evercode-task",
   "version": "1.0.0",
-  "description": "",
+  "description": "Test task demonstrating Node.js modules",
   "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "author": "Gleb Kozhanov",
+  "type": "module",
+  "main": "src/scheduler.js",
   "scripts": {
+    "start": "node src/scheduler.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
