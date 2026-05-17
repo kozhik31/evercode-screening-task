@@ -4,16 +4,11 @@ const logger = createLogger();
 logger("scheduler запустился");
 
 function scheduleTask(name, interval, task) {
+    logger(`Задача ${name} запланирована`)
+
     return setInterval(() => {
-        logger(`${name} сработал`);
         task();
     }, interval);
 }
-
-const runningInterval = 10000
-
-scheduleTask("run-task", runningInterval, () => {
-    logger("running");
-});
 
 export default scheduleTask;

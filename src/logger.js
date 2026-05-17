@@ -1,9 +1,10 @@
 import config from './config.js';
 
 function createLogger() {
+    const appName = config.appName;
+
     return function consoleLogger(message) {
-        const appName = config.appName;
-        const date = Date.now();
+        const date = new Date().toISOString();
         console.log(`${appName} ${date} ${message}`);
     };
 }

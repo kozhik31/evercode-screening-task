@@ -5,9 +5,9 @@
   "license": "ISC",
   "author": "Gleb Kozhanov",
   "type": "module",
-  "main": "src/scheduler.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node src/scheduler.js",
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
