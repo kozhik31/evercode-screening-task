@@ -5,5 +5,5 @@ const logger = createLogger()
 const runningInterval = 10000
 
 scheduleTask("run-task", runningInterval, () => {
-    logger("running")
+    logger("running", "INFO", "1")
 });
