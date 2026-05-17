@@ -1,1 +1,24 @@
-.idea
+# Зависимости
+node_modules/
+package-lock.json
+
+# Настройки сред разработки (IDE)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Логи
+logs
+*.log
+npm-debug.log*
+
+# Отчеты о покрытии тестами (если запустите jest с флагом --coverage)
+coverage/
+.nyc_output/
+
+# Операционная система
+.DS_Store
+Thumbs.db
