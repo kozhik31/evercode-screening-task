@@ -22,3 +22,5 @@ coverage/
 # Операционная система
 .DS_Store
 Thumbs.db
+
+.env
