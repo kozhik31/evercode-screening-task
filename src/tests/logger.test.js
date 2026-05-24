@@ -1,5 +1,5 @@
-import createLogger from '../logger.js';
-import { UnexpectedLoggingLevelError } from '../errors.js';
+import createLogger from '../module_1/logger.js';
+import { UnexpectedLoggingLevelError } from '../module_1/errors.js';
 import { jest, describe, test, beforeEach, afterEach, expect } from '@jest/globals';
 
 describe('Logger Module', () => {
