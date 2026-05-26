@@ -3,9 +3,7 @@ import {verifyToken} from '../middleware/jwt.js'
 
 const router = express.Router();
 
-router.use(verifyToken)
-
-router.get('/status', function (req, res) {
+router.get('/status', verifyToken, function (req, res) {
     res.send('ok');
 });
 
