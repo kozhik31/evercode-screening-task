@@ -5,7 +5,7 @@ class CurrencyService {
         this.currencies = new Map();
     }
 
-    addCurrency(name, ticker) {
+    async addCurrency(name, ticker) {
         if (this.currencies.has(name))
             throw new Error(`Валюта с именем ${name} уже существует`);
 
@@ -14,18 +14,18 @@ class CurrencyService {
         return currency;
     }
 
-    getCurrencyByName(name) {
+    async getCurrencyByName(name) {
         if (this.currencies.has(name))
             return this.currencies.get(name);
         else
             throw new Error(`Валюты с именем ${name} не существует`);
     }
 
-    deleteCurrency(name) {
+    async deleteCurrency(name) {
         this.currencies.delete(name);
     }
 
-    updateCurrency(name, ticker) {
+    async updateCurrency(name, ticker) {
         if (this.currencies.has(name)) {
             const currency = new Currency(name, ticker);
             this.currencies.set(name, currency);

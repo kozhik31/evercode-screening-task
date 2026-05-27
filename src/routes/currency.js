@@ -1,9 +1,10 @@
 import express from 'express';
 import CurrencyService from '../services/currency.js'
+import PriceService from "../services/price.js";
 
 const router = express.Router();
 const currencyService = new CurrencyService()
-
+const priceService = new PriceService()
 
 /**
  * @openapi
@@ -59,10 +60,10 @@ const currencyService = new CurrencyService()
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/currency/:name', function (req, res) {
+router.get('/currency/:name', async function (req, res) {
     try {
         const {name} = req.params;
-        const currency = currencyService.getCurrencyByName(name);
+        const currency = await currencyService.getCurrencyByName(name);
         res.status(200).json(currency);
     } catch (error) {
         res.status(404).json({error: error.message});
@@ -87,9 +88,9 @@ router.get('/currency/:name', function (req, res) {
  *       204:
  *         description: Валюта успешно удалена, контент отсутствует
  */
-router.delete('/currency/:name', function (req, res) {
+router.delete('/currency/:name', async function (req, res) {
     const {name} = req.params;
-    currencyService.deleteCurrency(name);
+    await currencyService.deleteCurrency(name);
     res.status(204).end();
 });
 
@@ -120,7 +121,7 @@ router.delete('/currency/:name', function (req, res) {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/currency', function (req, res) {
+router.post('/currency', async function (req, res) {
     try {
         const {name, ticker} = req.body;
 
@@ -128,7 +129,7 @@ router.post('/currency', function (req, res) {
             return res.status(400).json({error: 'Поля name и ticker обязательны'});
         }
 
-        const newCurrency = currencyService.addCurrency(name, ticker);
+        const newCurrency = await currencyService.addCurrency(name, ticker);
         res.status(201).json(newCurrency);
     } catch (error) {
         res.status(400).json({error: error.message});
@@ -162,7 +163,7 @@ router.post('/currency', function (req, res) {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.patch('/currency', function (req, res) {
+router.patch('/currency', async function (req, res) {
     try {
         const {name, ticker} = req.body;
 
@@ -170,12 +171,32 @@ router.patch('/currency', function (req, res) {
             return res.status(400).json({error: 'Поля name и ticker обязательны'});
         }
 
-        const newCurrency = currencyService.updateCurrency(name, ticker);
+        const newCurrency = await currencyService.updateCurrency(name, ticker);
         res.status(200).json(newCurrency);
     } catch (error) {
         res.status(400).json({error: error.message});
     }
 });
 
+
+router.get('/price', async function (req, res) {
+    try {
+        const {name, ticker} = req.body;
+        if (!name || !ticker) {
+            return res.status(400).json({error: 'Нужно передать name и ticker'});
+        }
+
+        const currency = await currencyService.getCurrencyByName(name);
+
+        if (currency.ticker !== ticker)
+            return res.status(404).json({error: `Валюты ${ticker} не существует`});
+
+        const price = await priceService.getPrices(ticker)
+
+        res.status(200).json(price);
+    } catch (error) {
+        res.status(404).json({error: error.message});
+    }
+});
 
 export default router
