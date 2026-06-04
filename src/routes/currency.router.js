@@ -249,9 +249,9 @@ function currencyRouter(db) {
      *             schema:
      *               $ref: '#/components/schemas/Error'
      */
-    router.get('/price', async function (req, res) {
+    router.get('/price/:name', async function (req, res) {
         try {
-            const {name} = req.body;
+            const {name} = req.params;
             if (!name) {
                 return res.status(400).json({error: 'Нужно передать name'});
             }
