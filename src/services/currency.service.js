@@ -30,6 +30,18 @@ class CurrencyService {
         }
     }
 
+    async getCurrencyById(id) {
+        try {
+            await this.db.exec('BEGIN TRANSACTION');
+            const currency = await this.currencyRepository.findById(id);
+            await this.db.exec('COMMIT');
+            return currency;
+        } catch (error) {
+            await this.db.exec('ROLLBACK');
+            throw error
+        }
+    }
+
     async deleteCurrency(id) {
         try {
             await this.db.exec('BEGIN TRANSACTION');

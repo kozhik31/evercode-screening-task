@@ -58,20 +58,17 @@ describe('Currency API Endpoints', () => {
     });
 
     describe('GET /currency/:name', () => {
-        test('должен вернуть валюту по её имени', async () => {
-            await request(app)
+        test('должен вернуть валюту по её id', async () => {
+            const currency = await request(app)
                 .post('/currency')
                 .send({ name: 'Solana', ticker: 'SOL' });
 
-            const res = await request(app).get('/currency/Solana');
+            const id = currency.body.id
+            const res = await request(app).get(`/currency/${id}`);
 
             expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty('name', 'Solana');
 
-            if (Array.isArray(res.body)) {
-                expect(res.body[0]).toHaveProperty('name', 'Solana');
-            } else {
-                expect(res.body).toHaveProperty('name', 'Solana');
-            }
         });
 
         test('должен вернуть 404, если валюта не найдена', async () => {

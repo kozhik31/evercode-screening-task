@@ -6,6 +6,14 @@ async function createTables(db) {
       ticker TEXT NOT NULL
     )
   `);
+
+    try {
+        await db.exec(`ALTER TABLE currency ADD COLUMN price REAL`);
+    } catch (error) {
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
 }
 
 export default createTables

@@ -5,10 +5,17 @@ class CurrencyRepository {
         this.db = db;
     }
 
+    async getAll() {
+        const result = await this.db.all(`SELECT * FROM currency`);
+        return result.map(
+            row => new Currency(row.id, row.name, row.ticker, row.price)
+        );
+    }
+
     async findById(id) {
         const result = await this.db.get(`SELECT * FROM currency WHERE id = ?`, [id]);
         if (!result) throw new Error(`Валюта с id ${id} не найдена`);
-        return new Currency(id, result.name, result.ticker)
+        return new Currency(id, result.name, result.ticker, result.price)
     }
 
     async findByName(name) {
@@ -16,7 +23,7 @@ class CurrencyRepository {
         if (!result || result.length === 0) throw new Error(`Валюта с именем ${name} не найдена`);
 
         return result.map(
-            row => new Currency(row.id, row.name, row.ticker)
+            row => new Currency(row.id, row.name, row.ticker, row.price)
         );
     }
 
@@ -29,6 +36,10 @@ class CurrencyRepository {
     async update(id, name, ticker) {
         await this.db.run(`UPDATE currency SET name = ?, ticker = ? WHERE id = ?`, [name, ticker, id]);
         return new Currency(id, name, ticker);
+    }
+
+    async updatePrice(id, price) {
+        await this.db.run(`UPDATE currency SET price = ? WHERE id = ?`, [price, id]);
     }
 
     async insert(name, ticker) {

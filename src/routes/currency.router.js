@@ -1,12 +1,10 @@
 import express from 'express';
 import CurrencyService from '../services/currency.service.js'
-import PriceService from "../services/price.js";
 
 function currencyRouter(db) {
 
     const router = express.Router();
     const currencyService = new CurrencyService(db)
-    const priceService = new PriceService()
 
     /**
      * @openapi
@@ -36,18 +34,18 @@ function currencyRouter(db) {
 
     /**
      * @openapi
-     * /currency/{name}:
+     * /currency/{id}:
      *   get:
-     *     summary: Получить валюту по имени
+     *     summary: Получить валюту по id
      *     tags: [Currency]
      *     parameters:
      *       - in: path
-     *         name: name
+     *         name: id
      *         required: true
      *         schema:
      *           type: string
-     *         description: Имя валюты
-     *         example: Bitcoin
+     *         description: id валюты
+     *         example: 1
      *     responses:
      *       200:
      *         description: Успешный ответ с объектом валюты
@@ -62,10 +60,10 @@ function currencyRouter(db) {
      *             schema:
      *               $ref: '#/components/schemas/Error'
      */
-    router.get('/currency/:name', async function (req, res) {
+    router.get('/currency/:id', async function (req, res) {
         try {
-            const {name} = req.params;
-            const currency = await currencyService.getCurrencyByName(name);
+            const {id} = req.params;
+            const currency = await currencyService.getCurrencyById(id);
             res.status(200).json(currency);
         } catch (error) {
             res.status(404).json({error: error.message});
@@ -260,13 +258,7 @@ function currencyRouter(db) {
 
             const currencies = await currencyService.getCurrencyByName(name);
 
-            const result = []
-            for (const currency of currencies) {
-                const price = await priceService.getPrices(currency.ticker)
-                result.push(price)
-            }
-
-            res.status(200).json(result);
+            res.status(200).json(currencies);
         } catch (error) {
             res.status(404).json({error: error.message});
         }
