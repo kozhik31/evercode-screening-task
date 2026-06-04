@@ -6,6 +6,8 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import createTables from "./repositories/create_tables.js";
 import initDatabase from "./repositories/init.js";
+import TaskScheduler from "./services/taskScheduler.js";
+import PriceService from "./services/price.js";
 
 const app = express();
 const port = 3000;
@@ -13,6 +15,10 @@ const port = 3000;
 
 const db = await initDatabase()
 await createTables(db)
+
+const taskScheduler = new TaskScheduler()
+const priceService = new PriceService(db)
+await taskScheduler.addTask(priceService.updatePrices.bind(priceService), 60000)
 
 const swaggerOptions = {
     definition: {
@@ -43,3 +49,12 @@ app.use('/', statusRouter)
 app.listen(port, () => {
     console.log(`App listening on port ${port}`);
 });
+
+
+async function exit() {
+    await taskScheduler.clearTasks()
+    await db.close()
+}
+
+process.on('SIGINT', exit);
+process.on('SIGTERM', exit);

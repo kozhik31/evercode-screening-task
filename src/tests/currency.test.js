@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
-import { open } from 'sqlite';
+import {open} from 'sqlite';
 import sqlite3 from 'sqlite3';
 import currencyRouter from '../routes/currency.router.js';
-import { describe, expect, test, beforeAll, afterAll } from "@jest/globals";
+import {describe, expect, test, beforeAll, afterAll} from "@jest/globals";
 
 const app = express();
 app.use(express.json());
@@ -17,10 +17,12 @@ beforeAll(async () => {
     });
 
     await db.exec(`
-        CREATE TABLE IF NOT EXISTS currency (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            ticker TEXT NOT NULL
+        CREATE TABLE IF NOT EXISTS currency
+        (
+            id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            name   TEXT NOT NULL,
+            ticker TEXT NOT NULL,
+            price REAL
         )
     `);
 
@@ -39,7 +41,7 @@ describe('Currency API Endpoints', () => {
         test('должен успешно создать новую валюту', async () => {
             const res = await request(app)
                 .post('/currency')
-                .send({ name: 'Bitcoin', ticker: 'BTC' });
+                .send({name: 'Bitcoin', ticker: 'BTC'});
 
             expect(res.status).toBe(201);
             expect(res.body).toHaveProperty('name', 'Bitcoin');
@@ -50,7 +52,7 @@ describe('Currency API Endpoints', () => {
         test('должен вернуть 400, если не переданы обязательные поля', async () => {
             const res = await request(app)
                 .post('/currency')
-                .send({ name: 'Ethereum' });
+                .send({name: 'Ethereum'});
 
             expect(res.status).toBe(400);
             expect(res.body).toHaveProperty('error', 'Поля name и ticker обязательны');
@@ -58,20 +60,17 @@ describe('Currency API Endpoints', () => {
     });
 
     describe('GET /currency/:name', () => {
-        test('должен вернуть валюту по её имени', async () => {
-            await request(app)
+        test('должен вернуть валюту по её id', async () => {
+            const currency = await request(app)
                 .post('/currency')
-                .send({ name: 'Solana', ticker: 'SOL' });
+                .send({name: 'Solana', ticker: 'SOL'});
 
-            const res = await request(app).get('/currency/Solana');
+            const id = currency.body.id
+            const res = await request(app).get(`/currency/${id}`);
 
             expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty('name', 'Solana');
 
-            if (Array.isArray(res.body)) {
-                expect(res.body[0]).toHaveProperty('name', 'Solana');
-            } else {
-                expect(res.body).toHaveProperty('name', 'Solana');
-            }
         });
 
         test('должен вернуть 404, если валюта не найдена', async () => {
@@ -86,13 +85,13 @@ describe('Currency API Endpoints', () => {
         test('должен успешно обновить существующую валюту', async () => {
             const createRes = await request(app)
                 .post('/currency')
-                .send({ name: 'Tether', ticker: 'USD' });
+                .send({name: 'Tether', ticker: 'USD'});
 
             const currencyId = createRes.body.id; // Берем настоящий ID из базы
 
             const res = await request(app)
                 .put('/currency')
-                .send({ id: currencyId, name: 'Tether', ticker: 'USDT' });
+                .send({id: currencyId, name: 'Tether', ticker: 'USDT'});
 
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('ticker', 'USDT');
@@ -101,7 +100,7 @@ describe('Currency API Endpoints', () => {
         test('должен вернуть 400, если не передан id, name или ticker', async () => {
             const res = await request(app)
                 .put('/currency')
-                .send({ name: 'Bitcoin' });
+                .send({name: 'Bitcoin'});
 
             expect(res.status).toBe(400);
             expect(res.body).toHaveProperty('error', 'Поля id, name и ticker обязательны');
@@ -112,7 +111,7 @@ describe('Currency API Endpoints', () => {
         test('должен удалить валюту по id и вернуть статус 204', async () => {
             const createRes = await request(app)
                 .post('/currency')
-                .send({ name: 'Dogecoin', ticker: 'DOGE' });
+                .send({name: 'Dogecoin', ticker: 'DOGE'});
 
             const currencyId = createRes.body.id;
 
@@ -120,6 +119,31 @@ describe('Currency API Endpoints', () => {
 
             expect(res.status).toBe(204);
             expect(res.body).toEqual({});
+        });
+    });
+
+
+    describe('GET /price/:name', () => {
+        test('должен вернуть все цены валют по имени', async () => {
+            await request(app)
+                .post('/currency')
+                .send({name: 'USD', ticker: 'BTCUSD'});
+
+            const res = await request(app)
+                .get('/price/USD')
+
+            expect(res.status).toBe(200);
+            expect(res.body[0]).toHaveProperty('name');
+            expect(res.body[0]).toHaveProperty('ticker');
+            expect(res.body[0]).toHaveProperty('id');
+            expect(res.body[0]).toHaveProperty('price');
+        });
+
+        test('должен вернуть 404, если валюта ненайдена', async () => {
+            const res = await request(app)
+                .get('/price/aaaaaaaaaaaaaaaa')
+
+            expect(res.status).toBe(404);
         });
     });
 });

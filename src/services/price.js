@@ -1,9 +1,13 @@
+import CurrencyRepository from "../repositories/currency.repository.js";
+
 class PriceService {
-    constructor() {
+    constructor(db) {
         this.url = "https://api.binance.com/api/v3/ticker/price?symbol="
+        this.db = db
+        this.currencyRepository = new CurrencyRepository(db)
     }
 
-    async getPrices(ticker) {
+    async fetchPrice(ticker) {
         const url = this.url + ticker
         const response = await fetch(url);
 
@@ -11,7 +15,19 @@ class PriceService {
             throw new Error(`Ошибка запроса: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        return data.price
+    }
+
+    async updatePrices() {
+        const currencies = await this.currencyRepository.getAll()
+
+        for (const currency of currencies) {
+            const price = await this.fetchPrice(currency.ticker)
+            if (parseFloat(price) !== currency.price) {
+                await this.currencyRepository.updatePrice(currency.id, price)
+            }
+        }
     }
 }
 
