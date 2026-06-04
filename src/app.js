@@ -18,7 +18,7 @@ await createTables(db)
 
 const taskScheduler = new TaskScheduler()
 const priceService = new PriceService(db)
-await taskScheduler.addTask(priceService.updatePrices.bind(priceService), 10000)
+await taskScheduler.addTask(priceService.updatePrices.bind(priceService), 60000)
 
 const swaggerOptions = {
     definition: {
