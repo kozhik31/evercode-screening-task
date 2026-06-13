@@ -1,7 +1,7 @@
 import Currency from "../entities/currency.js";
 import {NotFoundError} from "../errors/errors.js";
 
-class CurrencyRepository {
+class AddressRepository {
     constructor(db) {
         this.db = db;
     }

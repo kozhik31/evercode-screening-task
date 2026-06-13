@@ -8,6 +8,8 @@ import createTables from "./repositories/create_tables.js";
 import initDatabase from "./repositories/init.js";
 import TaskScheduler from "./services/taskScheduler.js";
 import PriceService from "./services/price.js";
+import {errorHandler} from "./middleware/errorHandler.js";
+import addressRouter from "./routes/address.router.js";
 
 const app = express();
 const port = 3000;
@@ -44,7 +46,9 @@ app.use(express.json())
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', currencyRouter(db))
+app.use('/', addressRouter(db))
 app.use('/', statusRouter)
+app.use(errorHandler)
 
 app.listen(port, () => {
     console.log(`App listening on port ${port}`);

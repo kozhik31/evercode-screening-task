@@ -1,5 +1,6 @@
 import express from 'express';
 import CurrencyService from '../services/currency.service.js'
+import {BadRequestError} from "../errors/errors.js";
 
 function currencyRouter(db) {
 
@@ -61,13 +62,9 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Error'
      */
     router.get('/currency/:id', async function (req, res) {
-        try {
-            const {id} = req.params;
-            const currency = await currencyService.getCurrencyById(id);
-            res.status(200).json(currency);
-        } catch (error) {
-            res.status(404).json({error: error.message});
-        }
+        const {id} = req.params;
+        const currency = await currencyService.getCurrencyById(id);
+        res.status(200).json(currency);
     });
 
 
@@ -96,13 +93,9 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Error'
      */
     router.delete('/currency/:id', async function (req, res) {
-        try {
-            const {id} = req.params;
-            await currencyService.deleteCurrency(id);
-            res.status(204).end();
-        } catch (error) {
-            res.status(404).json({error: error.message});
-        }
+        const {id} = req.params;
+        await currencyService.deleteCurrency(id);
+        res.status(204).end();
     });
 
 
@@ -133,18 +126,14 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Error'
      */
     router.post('/currency', async function (req, res) {
-        try {
-            const {name, ticker} = req.body;
+        const {name, ticker} = req.body;
 
-            if (!name || !ticker) {
-                return res.status(400).json({error: 'Поля name и ticker обязательны'});
-            }
-
-            const newCurrency = await currencyService.addCurrency(name, ticker);
-            res.status(201).json(newCurrency);
-        } catch (error) {
-            res.status(400).json({error: error.message});
+        if (!name || !ticker) {
+            throw new BadRequestError("Поля name и ticker обязательны");
         }
+
+        const newCurrency = await currencyService.addCurrency(name, ticker);
+        res.status(201).json(newCurrency);
     });
 
 
@@ -192,18 +181,14 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Error'
      */
     router.put('/currency', async function (req, res) {
-        try {
-            const {id, name, ticker} = req.body;
+        const {id, name, ticker} = req.body;
 
-            if (!id || !name || !ticker) {
-                return res.status(400).json({error: 'Поля id, name и ticker обязательны'});
-            }
-
-            const newCurrency = await currencyService.updateCurrency(id, name, ticker);
-            res.status(200).json(newCurrency);
-        } catch (error) {
-            res.status(400).json({error: error.message});
+        if (!id || !name || !ticker) {
+            throw new BadRequestError("Поля id, name и ticker обязательны");
         }
+
+        const newCurrency = await currencyService.updateCurrency(id, name, ticker);
+        res.status(200).json(newCurrency);
     });
 
 
@@ -250,18 +235,9 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Error'
      */
     router.get('/price/:name', async function (req, res) {
-        try {
-            const {name} = req.params;
-            if (!name) {
-                return res.status(400).json({error: 'Нужно передать name'});
-            }
-
-            const currencies = await currencyService.getCurrencyByName(name);
-
-            res.status(200).json(currencies);
-        } catch (error) {
-            res.status(404).json({error: error.message});
-        }
+        const {name} = req.params;
+        const currencies = await currencyService.getCurrencyByName(name);
+        res.status(200).json(currencies);
     });
 
     return router
