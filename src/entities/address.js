@@ -1,14 +1,14 @@
 class Address {
-    constructor(id, name, ticker, price) {
+    constructor(id, name, blockchain, balance) {
         this.id = id
         this.name = name
-        this.ticker = ticker
-        this.price = price
+        this.blockchain = blockchain
+        this.balance = balance
     }
     id;
     name;
-    ticker;
-    price;
+    blockchain;
+    balance;
 }
 
 export default Address

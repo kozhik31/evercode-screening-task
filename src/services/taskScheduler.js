@@ -5,8 +5,13 @@ class TaskScheduler {
 
     async addTask(task, interval) {
         const taskId = setInterval(async () => {
-            await task()
-            console.log(`Задача с именем ${task.name} выполнена`)
+
+            try {
+                await task()
+                console.log(`Задача с именем ${task.name} выполнена`)
+            } catch (error) {
+                console.log("Ошибка в фоновом обновлении :", error.message, error.statusCode)
+            }
         }, interval)
 
         this.tasks.push(taskId)

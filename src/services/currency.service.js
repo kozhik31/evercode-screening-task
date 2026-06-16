@@ -1,4 +1,5 @@
 import CurrencyRepository from "../repositories/currency.repository.js";
+import {RequestError} from "../errors/errors.js";
 
 class CurrencyService {
     constructor(db) {
@@ -40,6 +41,22 @@ class CurrencyService {
             await this.db.exec('ROLLBACK');
             throw error
         }
+    }
+
+    async getHistory(ticker, interval="1d") {
+        const url = `https://data-api.binance.vision/api/v3/klines?symbol=${ticker}&interval=${interval}`
+        const response = await fetch(url)
+        if (!response.ok) {
+            throw new RequestError(`Ошибка запроса: ${url}`, response.statusCode);
+        }
+
+        const data = await response.json();
+
+        return data.map(row => ({
+            timestamp: row[0],
+            price: parseFloat(row[1])
+        }));
+
     }
 
     async deleteCurrency(id) {

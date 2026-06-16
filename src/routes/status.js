@@ -2,7 +2,7 @@ import express from 'express';
 import {verifyToken} from '../middleware/jwt.js'
 
 const router = express.Router();
-
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -19,7 +19,7 @@ const router = express.Router();
  *               type: string
  *               example: ok
  */
-router.get('/status', verifyToken, function (req, res) {
+router.get('/status', function (req, res) {
     res.send('ok');
 });
 

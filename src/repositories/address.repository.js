@@ -1,5 +1,5 @@
-import Currency from "../entities/currency.js";
 import {NotFoundError} from "../errors/errors.js";
+import Address from "../entities/address.js";
 
 class AddressRepository {
     constructor(db) {
@@ -7,46 +7,38 @@ class AddressRepository {
     }
 
     async getAll() {
-        const result = await this.db.all(`SELECT * FROM currency`);
+        const result = await this.db.all(`SELECT * FROM address`);
         return result.map(
-            row => new Currency(row.id, row.name, row.ticker, row.price)
+            row => new Address(row.id, row.name, row.blockchain, row.balance)
         );
     }
 
     async findById(id) {
-        const result = await this.db.get(`SELECT * FROM currency WHERE id = ?`, [id]);
-        if (!result) throw new NotFoundError(`Валюта с id ${id} не найдена`);
-        return new Currency(id, result.name, result.ticker, result.price)
+        const result = await this.db.get(`SELECT * FROM address WHERE id = ?`, [id]);
+        if (!result) throw new NotFoundError(`Адрес с id ${id} не найден`);
+        return new Address(id, result.name, result.blockchain, result.balance)
     }
 
-    async findByName(name) {
-        const result = await this.db.all(`SELECT * FROM currency WHERE name = ?`, [name]);
-        if (!result || result.length === 0) throw new NotFoundError(`Валюта с именем ${name} не найдена`);
-
-        return result.map(
-            row => new Currency(row.id, row.name, row.ticker, row.price)
-        );
-    }
 
     async delete(id) {
-        const result = await this.db.run(`DELETE FROM currency WHERE id = ?`, [id]);
-        if (result.changes === 0) throw new NotFoundError(`Валюта с id ${id} не найдена`);
+        const result = await this.db.run(`DELETE FROM address WHERE id = ?`, [id]);
+        if (result.changes === 0) throw new NotFoundError(`Адрес с id ${id} не найден`);
         return null;
     }
 
-    async update(id, name, ticker) {
-        await this.db.run(`UPDATE currency SET name = ?, ticker = ? WHERE id = ?`, [name, ticker, id]);
-        return new Currency(id, name, ticker);
+    async update(id, name, blockchain) {
+        await this.db.run(`UPDATE address SET name = ?, blockchain = ? WHERE id = ?`, [name, blockchain, id]);
+        return new Address(id, name, blockchain);
     }
 
-    async updatePrice(id, price) {
-        await this.db.run(`UPDATE currency SET price = ? WHERE id = ?`, [price, id]);
+    async updateBalance(id, balance) {
+        await this.db.run(`UPDATE address SET balance = ? WHERE id = ?`, [balance, id]);
     }
 
-    async insert(name, ticker) {
-        const result = await this.db.run(`INSERT INTO currency (name, ticker) VALUES (?, ?)`, [name, ticker]);
-        return new Currency(result.lastID, name, ticker);
+    async insert(name, blockchain) {
+        const result = await this.db.run(`INSERT INTO address (name, blockchain) VALUES (?, ?)`, [name, blockchain]);
+        return new Address(result.lastID, name, blockchain);
     }
 }
 
-export default CurrencyRepository
+export default AddressRepository

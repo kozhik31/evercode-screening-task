@@ -1,11 +1,13 @@
 import express from 'express';
 import CurrencyService from '../services/currency.service.js'
 import {BadRequestError} from "../errors/errors.js";
+import {verifyToken} from '../middleware/jwt.js'
 
 function currencyRouter(db) {
 
     const router = express.Router();
     const currencyService = new CurrencyService(db)
+    router.use(verifyToken)
 
     /**
      * @openapi
@@ -67,6 +69,15 @@ function currencyRouter(db) {
         res.status(200).json(currency);
     });
 
+
+    router.get('/currency/:id/history', async function (req, res) {
+        const {id} = req.params;
+        const interval = req.query.interval || "1d";
+        const currency = await currencyService.getCurrencyById(id);
+        const history = await currencyService.getHistory(currency.ticker, interval)
+
+        res.status(200).json(history);
+    });
 
     /**
      * @openapi

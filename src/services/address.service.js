@@ -1,4 +1,5 @@
-import CurrencyRepository from "../repositories/currency.repository.js";
+import AddressRepository from "../repositories/address.repository.js";
+import {RequestError} from "../errors/errors.js";
 
 class AddressService {
     constructor(db) {
@@ -18,10 +19,10 @@ class AddressService {
         }
     }
 
-    async addAddress(id) {
+    async addAddress(name, blockchain) {
         try {
             await this.db.exec('BEGIN TRANSACTION');
-            const address = await this.addressRepository.insert(id);
+            const address = await this.addressRepository.insert(name, blockchain);
             await this.db.exec('COMMIT');
             return address;
         } catch (error) {
@@ -30,10 +31,10 @@ class AddressService {
         }
     }
 
-    async updateAddress(id) {
+    async updateAddress(id, name, blockchain) {
         try {
             await this.db.exec('BEGIN TRANSACTION');
-            const address = await this.addressRepository.update(id);
+            const address = await this.addressRepository.update(id, name, blockchain);
             await this.db.exec('COMMIT');
             return address;
         } catch (error) {
@@ -51,6 +52,16 @@ class AddressService {
         } catch (error) {
             await this.db.exec('ROLLBACK');
             throw error
+        }
+    }
+
+    async getBlockHeight(blockchain) {
+        if (blockchain === 'bitcoin') {
+            const url = "https://blockstream.info/api/blocks/tip/height"
+            const response = await fetch(url)
+            if (!response.ok) throw new RequestError(`Ошибка запроса: ${url}`, response.statusCode);
+
+            return await response.json()
         }
     }
 
