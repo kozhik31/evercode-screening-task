@@ -7,7 +7,6 @@ export function verifyToken(req, res, next) {
 
     if (!token) {
         throw new UnauthorizedError("Токен отсутствует")
-        // return res.status(401).json({error: 'Токен отсутствует'});
     }
 
     try {
@@ -15,6 +14,5 @@ export function verifyToken(req, res, next) {
         next();
     } catch (error) {
         throw new ForbiddenError("Доступ запрещен")
-        // return res.status(403).json({error: 'Доступ запрещен'});
     }
 }

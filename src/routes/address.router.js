@@ -29,11 +29,11 @@ function addressRouter(db) {
 
 
     /**
-     * @swagger
+     * @openapi
      * /address/{id}:
      *   get:
      *     summary: Получить адрес по ID
-     *     description: Возвращает информацию об отслеживаемом адресе по его идентификатору.
+     *     description: Возвращает информацию об отслеживаемом адресе.
      *     tags: [Address]
      *     security:
      *       - BearerAuth: []
@@ -51,31 +51,57 @@ function addressRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Address'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
+     *                   type: string
+     *                   example: bitcoin
      *       400:
      *         description: Некорректный запрос
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Адрес не найден
      */
     router.get('/address/:id', async function (req, res) {
         const {id} = req.params;
@@ -85,11 +111,11 @@ function addressRouter(db) {
 
 
     /**
-     * @swagger
+     * @openapi
      * /address/{id}/blockchain-height:
      *   get:
      *     summary: Получить текущую высоту блокчейна
-     *     description: Получает адрес по ID, определяет его блокчейн и возвращает текущую высоту этого блокчейна.
+     *     description: Получает адрес по ID, определяет его блокчейн и возвращает текущую высоту блокчейна.
      *     tags: [Address]
      *     security:
      *       - BearerAuth: []
@@ -107,31 +133,54 @@ function addressRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/BlockchainHeight'
+     *               type: object
+     *               properties:
+     *                 blockchain:
+     *                   type: string
+     *                   example: bitcoin
+     *                 height:
+     *                   type: integer
+     *                   example: 848000
      *       400:
      *         description: Некорректный запрос
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Адрес не найден
      */
     router.get('/address/:id/blockchain-height', async function (req, res) {
         const {id} = req.params;
@@ -143,7 +192,7 @@ function addressRouter(db) {
 
 
     /**
-     * @swagger
+     * @openapi
      * /address:
      *   post:
      *     summary: Добавить новый адрес
@@ -156,38 +205,74 @@ function addressRouter(db) {
      *       content:
      *         application/json:
      *           schema:
-     *             $ref: '#/components/schemas/AddressCreateRequest'
+     *             type: object
+     *             required:
+     *               - name
+     *               - blockchain
+     *             properties:
+     *               name:
+     *                 type: string
+     *                 example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *               blockchain:
+     *                 type: string
+     *                 example: bitcoin
      *     responses:
      *       201:
      *         description: Адрес успешно создан
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Address'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
+     *                   type: string
+     *                   example: bitcoin
      *       400:
      *         description: Не переданы обязательные поля или блокчейн не поддерживается
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Поля name и blockchain обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Связанный ресурс не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Ресурс не найден
      */
     router.post('/address', async function (req, res) {
         const {name, blockchain} = req.body;
@@ -205,7 +290,7 @@ function addressRouter(db) {
     });
 
     /**
-     * @swagger
+     * @openapi
      * /address:
      *   put:
      *     summary: Обновить адрес
@@ -218,38 +303,78 @@ function addressRouter(db) {
      *       content:
      *         application/json:
      *           schema:
-     *             $ref: '#/components/schemas/AddressUpdateRequest'
+     *             type: object
+     *             required:
+     *               - id
+     *               - name
+     *               - blockchain
+     *             properties:
+     *               id:
+     *                 type: integer
+     *                 example: 1
+     *               name:
+     *                 type: string
+     *                 example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *               blockchain:
+     *                 type: string
+     *                 example: bitcoin
      *     responses:
      *       200:
      *         description: Адрес успешно обновлен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Address'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
+     *                   type: string
+     *                   example: bitcoin
      *       400:
      *         description: Не переданы обязательные поля или блокчейн не поддерживается
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Поля id, name и blockchain обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Адрес не найден
      */
     router.put('/address', async function (req, res) {
         const {id, name, blockchain} = req.body;
@@ -266,11 +391,11 @@ function addressRouter(db) {
     });
 
     /**
-     * @swagger
+     * @openapi
      * /address/{id}:
      *   delete:
      *     summary: Удалить адрес
-     *     description: Удаляет отслеживаемый адрес по его идентификатору.
+     *     description: Удаляет отслеживаемый адрес по ID.
      *     tags: [Address]
      *     security:
      *       - BearerAuth: []
@@ -290,25 +415,41 @@ function addressRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Адрес не найден
      */
     router.delete('/address/:id', async function (req, res) {
         const {id} = req.params;

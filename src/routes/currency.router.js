@@ -1,30 +1,14 @@
 import express from 'express';
-import CurrencyService from '../services/currency.service.js'
-import {BadRequestError} from "../errors/errors.js";
-import {verifyToken} from '../middleware/jwt.js'
+import CurrencyService from '../services/currency.service.js';
+import { BadRequestError } from "../errors/errors.js";
+import { verifyToken } from '../middleware/jwt.js';
 
 function currencyRouter(db) {
-
     const router = express.Router();
-    const currencyService = new CurrencyService(db)
-    router.use(verifyToken)
+    const currencyService = new CurrencyService(db);
+    router.use(verifyToken);
 
     /**
-     * @openapi
-     * tags:
-     *   - name: Currency
-     *     description: Управление отслеживаемыми криптовалютами
-     *   - name: Price
-     *     description: Получение актуальных цен и истории цен
-     *
-     * components:
-     *   securitySchemes:
-     *     BearerAuth:
-     *       type: http
-     *       scheme: bearer
-     *       bearerFormat: JWT
-
-     /**
      * @openapi
      * /currency/{id}:
      *   get:
@@ -47,45 +31,70 @@ function currencyRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Currency'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: Bitcoin
+     *                 ticker:
+     *                   type: string
+     *                   example: BTC
      *       400:
      *         description: Некорректный запрос
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Валюта не найдена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Валюта не найдена
      */
     router.get('/currency/:id', async function (req, res) {
-        const {id} = req.params;
+        const { id } = req.params;
         const currency = await currencyService.getCurrencyById(id);
         res.status(200).json(currency);
     });
-
 
     /**
      * @openapi
      * /currency/{id}/history:
      *   get:
      *     summary: Получить историю цены валюты
-     *     description: Получает валюту по ID и возвращает историю цены по ее тикеру. Интервал передается через query-параметр.
+     *     description: Получает валюту по ID и возвращает историю цены по ее тикеру.
      *     tags: [Price]
      *     security:
      *       - BearerAuth: []
@@ -104,7 +113,7 @@ function currencyRouter(db) {
      *           type: string
      *           default: 1d
      *           enum: [1m, 5m, 15m, 1h, 4h, 1d, 1w]
-     *         description: Интервал свечей для истории цены
+     *         description: Интервал истории цены
      *         example: 1d
      *     responses:
      *       200:
@@ -114,37 +123,69 @@ function currencyRouter(db) {
      *             schema:
      *               type: array
      *               items:
-     *                 $ref: '#/components/schemas/PriceHistoryItem'
+     *                 type: object
+     *                 properties:
+     *                   openTime:
+     *                     type: integer
+     *                     example: 1718208000000
+     *                   open:
+     *                     type: string
+     *                     example: "67000.00"
+     *                   high:
+     *                     type: string
+     *                     example: "68100.00"
+     *                   low:
+     *                     type: string
+     *                     example: "66500.00"
+     *                   close:
+     *                     type: string
+     *                     example: "67420.15"
      *       400:
      *         description: Некорректный запрос или неподдерживаемый интервал
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный интервал
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Валюта не найдена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Валюта не найдена
      */
     router.get('/currency/:id/history', async function (req, res) {
-        const {id} = req.params;
+        const { id } = req.params;
         const interval = req.query.interval || "1d";
         const currency = await currencyService.getCurrencyById(id);
-        const history = await currencyService.getHistory(currency.ticker, interval)
+        const history = await currencyService.getHistory(currency.ticker, interval);
 
         res.status(200).json(history);
     });
@@ -164,7 +205,7 @@ function currencyRouter(db) {
      *         required: true
      *         schema:
      *           type: integer
-     *         description: ID удаляемой валюты
+     *         description: ID валюты
      *         example: 1
      *     responses:
      *       204:
@@ -174,32 +215,47 @@ function currencyRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Валюта не найдена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Валюта не найдена
      */
     router.delete('/currency/:id', async function (req, res) {
-        const {id} = req.params;
+        const { id } = req.params;
         await currencyService.deleteCurrency(id);
         res.status(204).end();
     });
-
 
     /**
      * @openapi
@@ -215,41 +271,79 @@ function currencyRouter(db) {
      *       content:
      *         application/json:
      *           schema:
-     *             $ref: '#/components/schemas/CurrencyCreateRequest'
+     *             type: object
+     *             required:
+     *               - name
+     *               - ticker
+     *             properties:
+     *               name:
+     *                 type: string
+     *                 description: Полное название валюты
+     *                 example: Bitcoin
+     *               ticker:
+     *                 type: string
+     *                 description: Тикер валюты
+     *                 example: BTC
      *     responses:
      *       201:
      *         description: Валюта успешно создана
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Currency'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: Bitcoin
+     *                 ticker:
+     *                   type: string
+     *                   example: BTC
      *       400:
      *         description: Ошибка валидации или валюта уже существует
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Поля name и ticker обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Связанный ресурс не найден
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Ресурс не найден
      */
     router.post('/currency', async function (req, res) {
-        const {name, ticker} = req.body;
+        const { name, ticker } = req.body;
 
         if (!name || !ticker) {
             throw new BadRequestError("Поля name и ticker обязательны");
@@ -258,7 +352,6 @@ function currencyRouter(db) {
         const newCurrency = await currencyService.addCurrency(name, ticker);
         res.status(201).json(newCurrency);
     });
-
 
     /**
      * @openapi
@@ -274,41 +367,84 @@ function currencyRouter(db) {
      *       content:
      *         application/json:
      *           schema:
-     *             $ref: '#/components/schemas/CurrencyUpdateRequest'
+     *             type: object
+     *             required:
+     *               - id
+     *               - name
+     *               - ticker
+     *             properties:
+     *               id:
+     *                 type: integer
+     *                 description: ID валюты
+     *                 example: 1
+     *               name:
+     *                 type: string
+     *                 description: Полное название валюты
+     *                 example: Bitcoin
+     *               ticker:
+     *                 type: string
+     *                 description: Тикер валюты
+     *                 example: BTC
      *     responses:
      *       200:
      *         description: Валюта успешно обновлена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Currency'
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: integer
+     *                   example: 1
+     *                 name:
+     *                   type: string
+     *                   example: Bitcoin
+     *                 ticker:
+     *                   type: string
+     *                   example: BTC
      *       400:
      *         description: Не переданы обязательные поля или операция ничего не изменяет
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Поля id, name и ticker обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Валюта не найдена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Валюта не найдена
      */
     router.put('/currency', async function (req, res) {
-        const {id, name, ticker} = req.body;
+        const { id, name, ticker } = req.body;
 
         if (!id || !name || !ticker) {
             throw new BadRequestError("Поля id, name и ticker обязательны");
@@ -318,13 +454,12 @@ function currencyRouter(db) {
         res.status(200).json(newCurrency);
     });
 
-
     /**
      * @openapi
      * /price/{name}:
      *   get:
      *     summary: Получить актуальную цену валюты по имени
-     *     description: Ищет валюту по имени и возвращает актуальную цену или список цен, полученный из PriceService.
+     *     description: Ищет валюту по имени и возвращает актуальную цену или список цен.
      *     tags: [Price]
      *     security:
      *       - BearerAuth: []
@@ -342,43 +477,62 @@ function currencyRouter(db) {
      *         content:
      *           application/json:
      *             schema:
-     *               oneOf:
-     *                 - $ref: '#/components/schemas/Price'
-     *                 - type: array
-     *                   items:
-     *                     $ref: '#/components/schemas/Price'
+     *               type: object
+     *               properties:
+     *                 symbol:
+     *                   type: string
+     *                   example: BTCUSDT
+     *                 price:
+     *                   type: string
+     *                   example: "67420.15"
      *       400:
      *         description: Некорректный запрос
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Некорректный запрос
      *       401:
      *         description: Пользователь не авторизован
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Токен не передан
      *       403:
      *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Недействительный токен
      *       404:
      *         description: Валюта с таким именем не найдена
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Error'
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   example: Валюта не найдена
      */
     router.get('/price/:name', async function (req, res) {
-        const {name} = req.params;
+        const { name } = req.params;
         const currencies = await currencyService.getCurrencyByName(name);
         res.status(200).json(currencies);
     });
 
-    return router
+    return router;
 }
 
-export default currencyRouter
+export default currencyRouter;

@@ -40,13 +40,21 @@ router.use(verifyToken)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Токен не передан
  *       403:
  *         description: Доступ запрещен
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Недействительный токен
  */
 router.get('/status', function (req, res) {
     res.send('ok');

@@ -41,6 +41,15 @@ const swaggerOptions = {
         ],
     },
     apis: ['./src/routes/*.js'],
+    components: {
+        securitySchemes: {
+            BearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            },
+        },
+    },
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
