@@ -11,51 +11,61 @@ function currencyRouter(db) {
 
     /**
      * @openapi
+     * tags:
+     *   - name: Currency
+     *     description: Управление отслеживаемыми криптовалютами
+     *   - name: Price
+     *     description: Получение актуальных цен и истории цен
+     *
      * components:
-     *   schemas:
-     *     Currency:
-     *       type: object
-     *       required:
-     *         - name
-     *         - ticker
-     *       properties:
-     *         name:
-     *           type: string
-     *           description: Полное название валюты
-     *           example: Bitcoin
-     *         ticker:
-     *           type: string
-     *           description: Уникальный тикер валюты
-     *           example: BTC
-     *     Error:
-     *       type: object
-     *       properties:
-     *         error:
-     *           type: string
-     *           example: Сообщение об ошибке
-     */
+     *   securitySchemes:
+     *     BearerAuth:
+     *       type: http
+     *       scheme: bearer
+     *       bearerFormat: JWT
 
-    /**
+     /**
      * @openapi
      * /currency/{id}:
      *   get:
-     *     summary: Получить валюту по id
+     *     summary: Получить валюту по ID
+     *     description: Возвращает информацию о валюте по ее идентификатору.
      *     tags: [Currency]
+     *     security:
+     *       - BearerAuth: []
      *     parameters:
      *       - in: path
      *         name: id
      *         required: true
      *         schema:
-     *           type: string
-     *         description: id валюты
+     *           type: integer
+     *         description: ID валюты
      *         example: 1
      *     responses:
      *       200:
-     *         description: Успешный ответ с объектом валюты
+     *         description: Валюта успешно найдена
      *         content:
      *           application/json:
      *             schema:
      *               $ref: '#/components/schemas/Currency'
+     *       400:
+     *         description: Некорректный запрос
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      *       404:
      *         description: Валюта не найдена
      *         content:
@@ -70,6 +80,66 @@ function currencyRouter(db) {
     });
 
 
+    /**
+     * @openapi
+     * /currency/{id}/history:
+     *   get:
+     *     summary: Получить историю цены валюты
+     *     description: Получает валюту по ID и возвращает историю цены по ее тикеру. Интервал передается через query-параметр.
+     *     tags: [Price]
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: ID валюты
+     *         example: 1
+     *       - in: query
+     *         name: interval
+     *         required: false
+     *         schema:
+     *           type: string
+     *           default: 1d
+     *           enum: [1m, 5m, 15m, 1h, 4h, 1d, 1w]
+     *         description: Интервал свечей для истории цены
+     *         example: 1d
+     *     responses:
+     *       200:
+     *         description: История цены успешно получена
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/PriceHistoryItem'
+     *       400:
+     *         description: Некорректный запрос или неподдерживаемый интервал
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       404:
+     *         description: Валюта не найдена
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
     router.get('/currency/:id/history', async function (req, res) {
         const {id} = req.params;
         const interval = req.query.interval || "1d";
@@ -84,18 +154,39 @@ function currencyRouter(db) {
      * /currency/{id}:
      *   delete:
      *     summary: Удалить валюту по ID
+     *     description: Удаляет валюту из списка отслеживаемых валют.
      *     tags: [Currency]
+     *     security:
+     *       - BearerAuth: []
      *     parameters:
      *       - in: path
      *         name: id
      *         required: true
      *         schema:
-     *           type: string
-     *         description: Идентификатор удаляемой валюты
-     *         example: "1"
+     *           type: integer
+     *         description: ID удаляемой валюты
+     *         example: 1
      *     responses:
      *       204:
-     *         description: Валюта успешно удалена, контент отсутствует
+     *         description: Валюта успешно удалена, тело ответа отсутствует
+     *       400:
+     *         description: Некорректный запрос
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      *       404:
      *         description: Валюта не найдена
      *         content:
@@ -115,13 +206,16 @@ function currencyRouter(db) {
      * /currency:
      *   post:
      *     summary: Создать новую валюту
+     *     description: Добавляет новую криптовалюту в список отслеживаемых.
      *     tags: [Currency]
+     *     security:
+     *       - BearerAuth: []
      *     requestBody:
      *       required: true
      *       content:
      *         application/json:
      *           schema:
-     *             $ref: '#/components/schemas/Currency'
+     *             $ref: '#/components/schemas/CurrencyCreateRequest'
      *     responses:
      *       201:
      *         description: Валюта успешно создана
@@ -131,6 +225,24 @@ function currencyRouter(db) {
      *               $ref: '#/components/schemas/Currency'
      *       400:
      *         description: Ошибка валидации или валюта уже существует
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       404:
+     *         description: Связанный ресурс не найден
      *         content:
      *           application/json:
      *             schema:
@@ -153,30 +265,16 @@ function currencyRouter(db) {
      * /currency:
      *   put:
      *     summary: Обновить существующую валюту
+     *     description: Обновляет название и тикер существующей валюты.
      *     tags: [Currency]
+     *     security:
+     *       - BearerAuth: []
      *     requestBody:
      *       required: true
      *       content:
      *         application/json:
      *           schema:
-     *             type: object
-     *             required:
-     *               - id
-     *               - name
-     *               - ticker
-     *             properties:
-     *               id:
-     *                 type: string
-     *                 description: Идентификатор валюты
-     *                 example: "1"
-     *               name:
-     *                 type: string
-     *                 description: Полное название валюты
-     *                 example: Bitcoin
-     *               ticker:
-     *                 type: string
-     *                 description: Уникальный тикер валюты
-     *                 example: BTC
+     *             $ref: '#/components/schemas/CurrencyUpdateRequest'
      *     responses:
      *       200:
      *         description: Валюта успешно обновлена
@@ -185,7 +283,25 @@ function currencyRouter(db) {
      *             schema:
      *               $ref: '#/components/schemas/Currency'
      *       400:
-     *         description: Не удалось обновить валюту
+     *         description: Не переданы обязательные поля или операция ничего не изменяет
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       404:
+     *         description: Валюта не найдена
      *         content:
      *           application/json:
      *             schema:
@@ -205,41 +321,52 @@ function currencyRouter(db) {
 
     /**
      * @openapi
-     * /price:
+     * /price/{name}:
      *   get:
-     *     summary: Получить актуальные цены для валют по их имени
+     *     summary: Получить актуальную цену валюты по имени
+     *     description: Ищет валюту по имени и возвращает актуальную цену или список цен, полученный из PriceService.
      *     tags: [Price]
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             required:
-     *               - name
-     *             properties:
-     *               name:
-     *                 type: string
-     *                 description: Имя валюты для поиска совпадений
-     *                 example: Bitcoin
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: name
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Название валюты
+     *         example: Bitcoin
      *     responses:
      *       200:
-     *         description: Список цен для найденных валют
+     *         description: Цена успешно получена
      *         content:
      *           application/json:
      *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     *                 description: Объект цены, возвращаемый PriceService
+     *               oneOf:
+     *                 - $ref: '#/components/schemas/Price'
+     *                 - type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Price'
      *       400:
-     *         description: Отсутствует обязательное поле name
+     *         description: Некорректный запрос
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Пользователь не авторизован
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       403:
+     *         description: Доступ запрещен
      *         content:
      *           application/json:
      *             schema:
      *               $ref: '#/components/schemas/Error'
      *       404:
-     *         description: Валюта с таким именем не найдена в базе
+     *         description: Валюта с таким именем не найдена
      *         content:
      *           application/json:
      *             schema:
