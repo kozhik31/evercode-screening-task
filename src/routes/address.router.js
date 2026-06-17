@@ -1,20 +1,40 @@
-import express from 'express';
-import CurrencyService from '../services/currency.service.js';
-import { BadRequestError } from "../errors/errors.js";
-import { verifyToken } from '../middleware/jwt.js';
+import express from "express";
+import AddressService from "../services/address.service.js";
+import {BadRequestError} from "../errors/errors.js";
+import {verifyToken} from "../middleware/jwt.js";
 
-function currencyRouter(db) {
+function addressRouter(db) {
+
     const router = express.Router();
-    const currencyService = new CurrencyService(db);
-    router.use(verifyToken);
+    const addressService = new AddressService(db);
+    const supportedBlockchains = ['bitcoin']
+    router.use(verifyToken)
+
+/**
+ * @swagger
+ * tags:
+ *   name: Address
+ *   description: Управление отслеживаемыми адресами блокчейна
+ */
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
 
     /**
      * @openapi
-     * /currency/{id}:
+     * /address/{id}:
      *   get:
-     *     summary: Получить валюту по ID
-     *     description: Возвращает информацию о валюте по ее идентификатору.
-     *     tags: [Currency]
+     *     summary: Получить адрес по ID
+     *     description: Возвращает информацию об отслеживаемом адресе.
+     *     tags: [Address]
      *     security:
      *       - BearerAuth: []
      *     parameters:
@@ -23,11 +43,11 @@ function currencyRouter(db) {
      *         required: true
      *         schema:
      *           type: integer
-     *         description: ID валюты
+     *         description: ID адреса
      *         example: 1
      *     responses:
      *       200:
-     *         description: Валюта успешно найдена
+     *         description: Адрес успешно найден
      *         content:
      *           application/json:
      *             schema:
@@ -38,10 +58,10 @@ function currencyRouter(db) {
      *                   example: 1
      *                 name:
      *                   type: string
-     *                   example: Bitcoin
-     *                 ticker:
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
      *                   type: string
-     *                   example: BTC
+     *                   example: bitcoin
      *       400:
      *         description: Некорректный запрос
      *         content:
@@ -73,7 +93,7 @@ function currencyRouter(db) {
      *                   type: string
      *                   example: Недействительный токен
      *       404:
-     *         description: Валюта не найдена
+     *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
@@ -81,21 +101,22 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Валюта не найдена
+     *                   example: Адрес не найден
      */
-    router.get('/currency/:id', async function (req, res) {
-        const { id } = req.params;
-        const currency = await currencyService.getCurrencyById(id);
-        res.status(200).json(currency);
+    router.get('/address/:id', async function (req, res) {
+        const {id} = req.params;
+        const address = await addressService.getAddressById(id);
+        res.status(200).json(address);
     });
+
 
     /**
      * @openapi
-     * /currency/{id}/history:
+     * /address/{id}/blockchain-height:
      *   get:
-     *     summary: Получить историю цены валюты
-     *     description: Получает валюту по ID и возвращает историю цены по ее тикеру.
-     *     tags: [Price]
+     *     summary: Получить текущую высоту блокчейна
+     *     description: Получает адрес по ID, определяет его блокчейн и возвращает текущую высоту блокчейна.
+     *     tags: [Address]
      *     security:
      *       - BearerAuth: []
      *     parameters:
@@ -104,112 +125,22 @@ function currencyRouter(db) {
      *         required: true
      *         schema:
      *           type: integer
-     *         description: ID валюты
+     *         description: ID адреса
      *         example: 1
-     *       - in: query
-     *         name: interval
-     *         required: false
-     *         schema:
-     *           type: string
-     *           default: 1d
-     *           enum: [1m, 5m, 15m, 1h, 4h, 1d, 1w]
-     *         description: Интервал истории цены
-     *         example: 1d
      *     responses:
      *       200:
-     *         description: История цены успешно получена
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     *                 properties:
-     *                   openTime:
-     *                     type: integer
-     *                     example: 1718208000000
-     *                   open:
-     *                     type: string
-     *                     example: "67000.00"
-     *                   high:
-     *                     type: string
-     *                     example: "68100.00"
-     *                   low:
-     *                     type: string
-     *                     example: "66500.00"
-     *                   close:
-     *                     type: string
-     *                     example: "67420.15"
-     *       400:
-     *         description: Некорректный запрос или неподдерживаемый интервал
+     *         description: Высота блокчейна успешно получена
      *         content:
      *           application/json:
      *             schema:
      *               type: object
      *               properties:
-     *                 error:
+     *                 blockchain:
      *                   type: string
-     *                   example: Некорректный интервал
-     *       401:
-     *         description: Пользователь не авторизован
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Токен не передан
-     *       403:
-     *         description: Доступ запрещен
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Недействительный токен
-     *       404:
-     *         description: Валюта не найдена
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Валюта не найдена
-     */
-    router.get('/currency/:id/history', async function (req, res) {
-        const { id } = req.params;
-        const interval = req.query.interval || "1d";
-        const currency = await currencyService.getCurrencyById(id);
-        const history = await currencyService.getHistory(currency.ticker, interval);
-
-        res.status(200).json(history);
-    });
-
-    /**
-     * @openapi
-     * /currency/{id}:
-     *   delete:
-     *     summary: Удалить валюту по ID
-     *     description: Удаляет валюту из списка отслеживаемых валют.
-     *     tags: [Currency]
-     *     security:
-     *       - BearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: integer
-     *         description: ID валюты
-     *         example: 1
-     *     responses:
-     *       204:
-     *         description: Валюта успешно удалена, тело ответа отсутствует
+     *                   example: bitcoin
+     *                 height:
+     *                   type: integer
+     *                   example: 848000
      *       400:
      *         description: Некорректный запрос
      *         content:
@@ -241,7 +172,7 @@ function currencyRouter(db) {
      *                   type: string
      *                   example: Недействительный токен
      *       404:
-     *         description: Валюта не найдена
+     *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
@@ -249,21 +180,24 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Валюта не найдена
+     *                   example: Адрес не найден
      */
-    router.delete('/currency/:id', async function (req, res) {
-        const { id } = req.params;
-        await currencyService.deleteCurrency(id);
-        res.status(204).end();
+    router.get('/address/:id/blockchain-height', async function (req, res) {
+        const {id} = req.params;
+        const address = await addressService.getAddressById(id);
+        const height = await addressService.getBlockHeight(address.blockchain);
+        const result = {blockchain: address.blockchain, height: height}
+        res.status(200).json(result);
     });
+
 
     /**
      * @openapi
-     * /currency:
+     * /address:
      *   post:
-     *     summary: Создать новую валюту
-     *     description: Добавляет новую криптовалюту в список отслеживаемых.
-     *     tags: [Currency]
+     *     summary: Добавить новый адрес
+     *     description: Создает новый отслеживаемый адрес для поддерживаемого блокчейна.
+     *     tags: [Address]
      *     security:
      *       - BearerAuth: []
      *     requestBody:
@@ -274,19 +208,17 @@ function currencyRouter(db) {
      *             type: object
      *             required:
      *               - name
-     *               - ticker
+     *               - blockchain
      *             properties:
      *               name:
      *                 type: string
-     *                 description: Полное название валюты
-     *                 example: Bitcoin
-     *               ticker:
+     *                 example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *               blockchain:
      *                 type: string
-     *                 description: Тикер валюты
-     *                 example: BTC
+     *                 example: bitcoin
      *     responses:
      *       201:
-     *         description: Валюта успешно создана
+     *         description: Адрес успешно создан
      *         content:
      *           application/json:
      *             schema:
@@ -297,12 +229,12 @@ function currencyRouter(db) {
      *                   example: 1
      *                 name:
      *                   type: string
-     *                   example: Bitcoin
-     *                 ticker:
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
      *                   type: string
-     *                   example: BTC
+     *                   example: bitcoin
      *       400:
-     *         description: Ошибка валидации или валюта уже существует
+     *         description: Не переданы обязательные поля или блокчейн не поддерживается
      *         content:
      *           application/json:
      *             schema:
@@ -310,7 +242,7 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Поля name и ticker обязательны
+     *                   example: Поля name и blockchain обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
@@ -342,24 +274,28 @@ function currencyRouter(db) {
      *                   type: string
      *                   example: Ресурс не найден
      */
-    router.post('/currency', async function (req, res) {
-        const { name, ticker } = req.body;
+    router.post('/address', async function (req, res) {
+        const {name, blockchain} = req.body;
 
-        if (!name || !ticker) {
-            throw new BadRequestError("Поля name и ticker обязательны");
+        if (!name || !blockchain) {
+            throw new BadRequestError("Поля name и blockchain обязательны");
+        }
+        if (!supportedBlockchains.includes(blockchain)) {
+            throw new BadRequestError(`${blockchain} не поддерживается`);
         }
 
-        const newCurrency = await currencyService.addCurrency(name, ticker);
-        res.status(201).json(newCurrency);
+
+        const newAddress = await addressService.addAddress(name, blockchain);
+        res.status(201).json(newAddress);
     });
 
     /**
      * @openapi
-     * /currency:
+     * /address:
      *   put:
-     *     summary: Обновить существующую валюту
-     *     description: Обновляет название и тикер существующей валюты.
-     *     tags: [Currency]
+     *     summary: Обновить адрес
+     *     description: Обновляет данные существующего отслеживаемого адреса.
+     *     tags: [Address]
      *     security:
      *       - BearerAuth: []
      *     requestBody:
@@ -371,23 +307,20 @@ function currencyRouter(db) {
      *             required:
      *               - id
      *               - name
-     *               - ticker
+     *               - blockchain
      *             properties:
      *               id:
      *                 type: integer
-     *                 description: ID валюты
      *                 example: 1
      *               name:
      *                 type: string
-     *                 description: Полное название валюты
-     *                 example: Bitcoin
-     *               ticker:
+     *                 example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *               blockchain:
      *                 type: string
-     *                 description: Тикер валюты
-     *                 example: BTC
+     *                 example: bitcoin
      *     responses:
      *       200:
-     *         description: Валюта успешно обновлена
+     *         description: Адрес успешно обновлен
      *         content:
      *           application/json:
      *             schema:
@@ -398,12 +331,12 @@ function currencyRouter(db) {
      *                   example: 1
      *                 name:
      *                   type: string
-     *                   example: Bitcoin
-     *                 ticker:
+     *                   example: "1wiz18xYmhRX6xStj2b9t1rwWX4GKUgpv"
+     *                 blockchain:
      *                   type: string
-     *                   example: BTC
+     *                   example: bitcoin
      *       400:
-     *         description: Не переданы обязательные поля или операция ничего не изменяет
+     *         description: Не переданы обязательные поля или блокчейн не поддерживается
      *         content:
      *           application/json:
      *             schema:
@@ -411,7 +344,7 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Поля id, name и ticker обязательны
+     *                   example: Поля id, name и blockchain обязательны
      *       401:
      *         description: Пользователь не авторизован
      *         content:
@@ -433,7 +366,7 @@ function currencyRouter(db) {
      *                   type: string
      *                   example: Недействительный токен
      *       404:
-     *         description: Валюта не найдена
+     *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
@@ -441,50 +374,42 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Валюта не найдена
+     *                   example: Адрес не найден
      */
-    router.put('/currency', async function (req, res) {
-        const { id, name, ticker } = req.body;
+    router.put('/address', async function (req, res) {
+        const {id, name, blockchain} = req.body;
 
-        if (!id || !name || !ticker) {
-            throw new BadRequestError("Поля id, name и ticker обязательны");
+        if (!id || !name || !blockchain) {
+            throw new BadRequestError("Поля name и blockchain обязательны");
+        }
+        if (!supportedBlockchains.includes(blockchain)) {
+            throw new BadRequestError(`${blockchain} не поддерживается`);
         }
 
-        const newCurrency = await currencyService.updateCurrency(id, name, ticker);
-        res.status(200).json(newCurrency);
+        const newAddress = await addressService.updateAddress(id, name, blockchain);
+        res.status(200).json(newAddress);
     });
 
     /**
      * @openapi
-     * /price/{name}:
-     *   get:
-     *     summary: Получить актуальную цену валюты по имени
-     *     description: Ищет валюту по имени и возвращает актуальную цену или список цен.
-     *     tags: [Price]
+     * /address/{id}:
+     *   delete:
+     *     summary: Удалить адрес
+     *     description: Удаляет отслеживаемый адрес по ID.
+     *     tags: [Address]
      *     security:
      *       - BearerAuth: []
      *     parameters:
      *       - in: path
-     *         name: name
+     *         name: id
      *         required: true
      *         schema:
-     *           type: string
-     *         description: Название валюты
-     *         example: Bitcoin
+     *           type: integer
+     *         description: ID адреса
+     *         example: 1
      *     responses:
-     *       200:
-     *         description: Цена успешно получена
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 symbol:
-     *                   type: string
-     *                   example: BTCUSDT
-     *                 price:
-     *                   type: string
-     *                   example: "67420.15"
+     *       204:
+     *         description: Адрес успешно удален
      *       400:
      *         description: Некорректный запрос
      *         content:
@@ -516,7 +441,7 @@ function currencyRouter(db) {
      *                   type: string
      *                   example: Недействительный токен
      *       404:
-     *         description: Валюта с таким именем не найдена
+     *         description: Адрес не найден
      *         content:
      *           application/json:
      *             schema:
@@ -524,15 +449,15 @@ function currencyRouter(db) {
      *               properties:
      *                 error:
      *                   type: string
-     *                   example: Валюта не найдена
+     *                   example: Адрес не найден
      */
-    router.get('/price/:name', async function (req, res) {
-        const { name } = req.params;
-        const currencies = await currencyService.getCurrencyByName(name);
-        res.status(200).json(currencies);
+    router.delete('/address/:id', async function (req, res) {
+        const {id} = req.params;
+        await addressService.deleteAddress(id);
+        res.status(204).end();
     });
 
-    return router;
+    return router
 }
 
-export default currencyRouter;
+export default addressRouter

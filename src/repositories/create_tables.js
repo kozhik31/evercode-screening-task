@@ -14,6 +14,16 @@ async function createTables(db) {
             throw error;
         }
     }
+
+
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS address (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      blockchain TEXT NOT NULL,
+      balance REAL
+    )
+  `);
 }
 
 export default createTables
