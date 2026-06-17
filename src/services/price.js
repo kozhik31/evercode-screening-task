@@ -1,22 +1,29 @@
 import CurrencyRepository from "../repositories/currency.repository.js";
+import {RequestError} from "../errors/errors.js";
+import {createHttpClient} from "../utils/axios.js";
 
 class PriceService {
     constructor(db) {
         this.url = "https://api.binance.com/api/v3/ticker/price?symbol="
         this.db = db
         this.currencyRepository = new CurrencyRepository(db)
+        this.client = createHttpClient({ timeout: 5000 })
+    }
+
+    #delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async fetchPrice(ticker) {
-        const url = this.url + ticker
-        const response = await fetch(url);
+        const url = this.url + ticker;
 
-        if (!response.ok) {
-            throw new Error(`Ошибка запроса: ${response.status}`);
+        try {
+            const response = await this.client.get(url);
+            return response.data.price;
+        } catch (error) {
+            const status = error.response?.status || 500;
+            throw new RequestError(`Ошибка запроса: ${url}. ${error.message}`, status);
         }
-
-        const data = await response.json();
-        return data.price
     }
 
     async updatePrices() {
@@ -27,6 +34,7 @@ class PriceService {
             if (parseFloat(price) !== currency.price) {
                 await this.currencyRepository.updatePrice(currency.id, price)
             }
+            await this.#delay(100);
         }
     }
 }
